@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft服务器白名单审核问卷</title>
+    <!-- Tailwind CSS v3 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#8B5CF6',
+                        danger: '#EF4444',
+                        warning: '#F59E0B',
+                        info: '#3B82F6',
+                        light: '#F3F4F6',
+                        dark: '#1F2937'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-in': 'slideIn 0.5s ease-in-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideIn: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow {
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            }
+            .transition-all-300 {
+                transition: all 0.3s ease;
+            }
+            .glass {
+                background: rgba(255, 255, 255, 0.25);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.18);
+            }
+            .dark-glass {
+                background: rgba(31, 41, 55, 0.85);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+            }
+        }
+    </style>
+    <style>
+        body {
+            background-image: url('https://images.unsplash.com/photo-1519677170906-a72000709e35?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1950&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+        
+        .minecraft-font {
+            font-family: 'Minecraft', 'Inter', sans-serif;
+        }
+        
+        @font-face {
+            font-family: 'Minecraft';
+            src: url('https://fonts.cdnfonts.com/css/minecraft-3') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
+        
+        .question-card {
+            transition: all 0.3s ease;
+        }
+        
+        .question-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .option-btn {
+            transition: all 0.2s ease;
+        }
+        
+        .option-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .option-btn.selected {
+            border-color: #3B82F6;
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+        
+        .hidden-message {
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            background-color: rgba(59, 130, 246, 0.1);
+            border-left: 3px solid #3B82F6;
+            padding: 0 10px;
+            margin: 5px 0 0 20px;
+        }
+        
+        .hidden-message.show {
+            opacity: 1;
+            height: auto;
+            padding: 10px;
+        }
+        
+        .riddle {
+            cursor: pointer;
+            color: inherit;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .riddle:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+        
+        .riddle::after {
+            content: " (点击查看)";
+            font-size: 0.8em;
+            color: #6B7280;
+            font-style: italic;
+        }
+        
+        .progress-bar {
+            transition: width 0.5s ease;
+        }
+        
+        .success-animation {
+            animation: successPulse 1s ease-in-out;
+        }
+        
+        @keyframes successPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+    <div class="min-h-screen flex flex-col">
+        <!-- 顶部导航栏 -->
+        <header class="dark-glass py-4 px-6 shadow-lg">
+            <div class="container mx-auto flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2235/2235180.png" alt="Minecraft Logo" class="w-10 h-10">
+                    <h1 class="text-2xl font-bold minecraft-font text-shadow">Minecraft 服务器白名单审核</h1>
+                </div>
+                <div class="hidden md:flex space-x-6">
+                    <button id="helpBtn" class="flex items-center space-x-1 hover:text-primary transition-all-300">
+                        <i class="fa fa-question-circle"></i>
+                        <span>帮助</span>
+                    </button>
+                    <button id="rulesBtn" class="flex items-center space-x-1 hover:text-primary transition-all-300">
+                        <i class="fa fa-book"></i>
+                        <span>服务器规则</span>
+                    </button>
+                    <button id="contactBtn" class="flex items-center space-x-1 hover:text-primary transition-all-300">
+                        <i class="fa fa-envelope"></i>
+                        <span>联系我们</span>
+                    </button>
+                </div>
+                <button id="mobileMenuBtn" class="md:hidden text-2xl">
+                    <i class="fa fa-bars"></i>
+                </button>
+            </div>
+            <!-- 移动端菜单 -->
+            <div id="mobileMenu" class="hidden md:hidden mt-4 pb-2 animate-fade-in">
+                <div class="flex flex-col space-y-3 px-4">
+                    <button class="flex items-center space-x-2 hover:text-primary transition-all-300 py-2">
+                        <i class="fa fa-question-circle"></i>
+                        <span>帮助</span>
+                    </button>
+                    <button class="flex items-center space-x-2 hover:text-primary transition-all-300 py-2">
+                        <i class="fa fa-book"></i>
+                        <span>服务器规则</span>
+                    </button>
+                    <button class="flex items-center space-x-2 hover:text-primary transition-all-300 py-2">
+                        <i class="fa fa-envelope"></i>
+                        <span>联系我们</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主要内容区域 -->
+        <main class="flex-grow container mx-auto px-4 py-8">
+            <!-- 欢迎页面 -->
+            <section id="welcomeSection" class="animate-fade-in">
+                <div class="max-w-3xl mx-auto dark-glass rounded-xl p-8 shadow-2xl">
+                    <div class="text-center mb-8">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2235/2235180.png" alt="Minecraft Logo" class="w-24 h-24 mx-auto mb-4">
+                        <h2 class="text-4xl font-bold minecraft-font mb-4 text-shadow">欢迎来到 Minecraft 服务器</h2>
+                        <p class="text-xl text-gray-300">请完成以下问卷以申请白名单</p>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <h3 class="text-2xl font-semibold mb-4">审核流程</h3>
+                        <div class="flex flex-col md:flex-row justify-between">
+                            <div class="flex flex-col items-center mb-4 md:mb-0">
+                                <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center mb-2">
+                                    <span class="font-bold">1</span>
+                                </div>
+                                <span>基本信息</span>
+                            </div>
+                            <div class="hidden md:block self-center">
+                                <i class="fa fa-arrow-right text-primary"></i>
+                            </div>
+                            <div class="md:hidden self-center text-primary">
+                                <i class="fa fa-arrow-down"></i>
+                            </div>
+                            <div class="flex flex-col items-center mb-4 md:mb-0">
+                                <div class="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center mb-2">
+                                    <span class="font-bold">2</span>
+                                </div>
+                                <span>问卷调查</span>
+                            </div>
+                            <div class="hidden md:block self-center">
+                                <i class="fa fa-arrow-right text-primary"></i>
+                            </div>
+                            <div class="md:hidden self-center text-primary">
+                                <i class="fa fa-arrow-down"></i>
+                            </div>
+                            <div class="flex flex-col items-center mb-4 md:mb-0">
+                                <div class="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center mb-2">
+                                    <span class="font-bold">3</span>
+                                </div>
+                                <span>阅读服规</span>
+                            </div>
+                            <div class="hidden md:block self-center">
+                                <i class="fa fa-arrow-right text-primary"></i>
+                            </div>
+                            <div class="md:hidden self-center text-primary">
+                                <i class="fa fa-arrow-down"></i>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <div class="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center mb-2">
+                                    <span class="font-bold">4</span>
+                                </div>
+                                <span>完成审核</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button id="startBtn" class="bg-primary hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full transition-all-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                            开始审核
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 基本信息页面 -->
+            <section id="infoSection" class="hidden animate-fade-in">
+                <div class="max-w-3xl mx-auto dark-glass rounded-xl p-8 shadow-2xl">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-bold minecraft-font mb-4">基本信息</h2>
+                        <p class="text-gray-300">请填写您的基本信息，所有字段均为必填</p>
+                    </div>
+                    
+                    <form id="infoForm" class="space-y-6">
+                        <div>
+                            <label for="username" class="block mb-2 font-medium">Minecraft 用户名</label>
+                            <input type="text" id="username" name="username" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        </div>
+                        
+                        <div>
+                            <label for="age" class="block mb-2 font-medium">年龄</label>
+                            <input type="number" id="age" name="age" min="6" max="100" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        </div>
+                        
+                        <div>
+                            <label for="education" class="block mb-2 font-medium">学历</label>
+                            <select id="education" name="education" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                <option value="">请选择您的学历</option>
+                                <option value="primary">小学及以下</option>
+                                <option value="junior">初中</option>
+                                <option value="high">高中/中专</option>
+                                <option value="college">大学/大专</option>
+                                <option value="master">研究生及以上</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label for="experience" class="block mb-2 font-medium">Minecraft 游戏经验</label>
+                            <select id="experience" name="experience" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                <option value="">请选择您的游戏经验</option>
+                                <option value="newbie">新手（少于6个月）</option>
+                                <option value="intermediate">中级（6个月-2年）</option>
+                                <option value="advanced">高级（2年以上）</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label for="introduction" class="block mb-2 font-medium">自我介绍（50-200字）</label>
+                            <textarea id="introduction" name="introduction" rows="4" maxlength="200" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary" required></textarea>
+                            <div class="text-right text-gray-400 text-sm mt-1">
+                                <span id="introCount">0</span>/200
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between">
+                            <button type="button" id="backToWelcomeBtn" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition-all-300">
+                                返回
+                            </button>
+                            <button type="submit" id="nextToQuestionsBtn" class="bg-primary hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition-all-300">
+                                下一步
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- 问卷页面 -->
+            <section id="questionnaireSection" class="hidden animate-fade-in">
+                <div class="max-w-4xl mx-auto dark-glass rounded-xl p-8 shadow-2xl">
+                    <div class="mb-8">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-3xl font-bold minecraft-font">问卷调查</h2>
+                            <div class="text-lg font-semibold">
+                                问题 <span id="currentQuestion">1</span>/<span id="totalQuestions">15</span>
+                            </div>
+                        </div>
+                        
+                        <div class="w-full bg-gray-700 rounded-full h-2.5 mb-6">
+                            <div id="progressBar" class="bg-primary h-2.5 rounded-full progress-bar" style="width: 6.67%"></div>
+                        </div>
+                        
+                        <p class="text-gray-300 mb-6">请根据您的真实情况回答以下问题，您的回答将作为审核的重要依据。</p>
+                    </div>
+                    
+                    <div id="questionContainer">
+                        <!-- 问题将通过JavaScript动态加载 -->
+                    </div>
+                    
+                    <div class="flex justify-between mt-8">
+                        <button id="prevQuestionBtn" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition-all-300 hidden">
+                            上一题
+                        </button>
+                        <button id="nextQuestionBtn" class="bg-primary hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition-all-300">
+                            下一题
+                        </button>
+                        <button id="submitQuestionnaireBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition-all-300 hidden">
+                            提交问卷
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 结果页面 -->
+            <section id="resultSection" class="hidden animate-fade-in">
+                <div class="max-w-3xl mx-auto dark-glass rounded-xl p-8 shadow-2xl">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-bold minecraft-font mb-4">审核结果</h2>
+                    </div>
+                    
+                    <div id="resultContent">
+                        <!-- 结果将通过JavaScript动态加载 -->
+                    </div>
+                    
+                    <div class="mt-8 text-center" id="resultActions">
+                        <!-- 结果操作按钮将通过JavaScript动态加载 -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- 服务器规则页面 -->
+            <section id="rulesSection" class="hidden animate-fade-in">
+                <div class="max-w-4xl mx-auto dark-glass rounded-xl p-8 shadow-2xl">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-bold minecraft-font mb-4">服务器规则</h2>
+                        <p class="text-gray-300">请仔细阅读以下服务器规则，您需要了解并遵守所有规则</p>
+                    </div>
+                    
+                    <div id="rulesContent" class="space-y-6 max-h-[600px] overflow-y-auto pr-4 custom-scrollbar">
+                        <div class="rule-section">
+                            <h3 class="text-2xl font-semibold mb-4 text-primary">TuT联邦服务器服规（V1.0）</h3>
+                            <p class="mb-4">本条例适用于TuT联邦服务器（以下简称"服务器"）所有注册玩家、访客、管理员及公会成员，本服务器为生存建筑服，核心玩法聚焦生存探索与建筑创作，致力于为所有成员提供公平、和谐、安全的游戏环境，保障各类成员的合法权益，明确行为边界与处分标准，确保服务器长期稳定运行。</p>
+                            
+                            <h4 class="text-xl font-semibold mb-3 text-secondary">法律免责声明</h4>
+                            <p class="mb-4">本服务器严格遵守《中华人民共和国网络安全法》《中华人民共和国未成年人保护法》《中华人民共和国个人信息保护法》《互联网信息服务管理办法》《信息网络传播权保护条例》等现行相关法律法规，坚决践行"避风港规则"与"红旗标准"，规范平台运营行为。所有成员在服务器内的行为均需符合国家法律规定及公序良俗，成员因自身违规行为、恶意操作、个人信息保管不当导致的信息泄露、财产损失、法律责任，均由成员自行承担，服务器管理组不承担任何连带责任；因成员违规行为导致服务器遭受损失、处罚的，服务器管理组有权向涉事成员追偿。</p>
+                            <p class="mb-4">服务器内所有内容均为玩家原创或已获得合法授权，若存在侵权行为，一经权利人通知并提供有效证据，管理组将立即采取删除、屏蔽等必要措施，不承担其他额外责任，侵权责任由侵权成员自行承担。服务器内的氪金服务均遵循自愿原则，玩家自主决定是否充值，充值后不予退还（符合法律规定的特殊情形除外），因玩家自身操作失误、账号被盗导致的充值损失，由玩家自行承担。</p>
+                            
+                            <h4 class="text-xl font-semibold mb-3 text-secondary">核心原则声明</h4>
+                            <p class="mb-4">本服务器坚决提倡公平正义，杜绝任何形式的作弊、特权、歧视行为，保障所有成员在游戏内的平等权利，氪金玩家与普通玩家仅在游戏体验优化上有差异，不享有影响游戏公平性的特权；尊重人权，尊重所有成员的人格尊严、个人意愿、劳动成果，禁止任何形式的人身攻击、骚扰、歧视、欺凌行为，营造包容、友善、互助的社群氛围。</p>
+                            <p class="mb-4">所有成员在进入服务器的那一刻起，即视为已阅读、理解并自愿遵守本条例全部内容，若有违反，管理组将依据本条例规定，结合违规情节轻重、过往行为记录及造成的影响，予以相应处分，所有处分记录将永久存档，一经记录不予移除。本条例最终解释权归TuT联邦服务器所有，管理组有权根据服务器运行情况，对本条例进行修订与补充，修订后将通过服务器公告、社群通知等渠道公示，公示后即刻生效，所有成员需自觉遵守修订后的条例内容。</p>
+                        </div>
+                        
+                        <div class="rule-section">
+                            <h3 class="text-2xl font-semibold mb-4 text-primary">一、玩家规则</h3>
+                            <p class="mb-4">普通玩家是服务器的核心组成部分，所有普通玩家需严格遵守本规则，秉持公平生存、文明建筑、友好互动、自愿氪金的原则，共同维护服务器的生存建筑环境，规范自身游戏行为，尊重他人权益，不得从事任何损害服务器、其他玩家利益及违反法律法规、本条例的行为。</p>
+                            <p class="mb-4">本规则涵盖玩家注册、账号管理、年龄要求、生存规则、建筑规范、聊天规范、互动规范、版权保护、氪金规范、违规处理等多个方面，详细规定玩家在服务器内的权利与义务，内容详实、权责清晰，确保所有玩家在公平、公正、合规的环境下享受生存建筑的乐趣，同时明确氪金相关权益与规范，规避所有法律风险。</p>
+                            
+                            <h4 class="text-xl font-semibold mb-3 text-secondary">1.1 玩家注册与账号管理</h4>
+                            <ul class="list-disc pl-6 space-y-2">
+                                <li>玩家注册需提供真实、合法、有效的身份信息，未成年人需在法定监护人陪同下注册，如实提供监护人身份信息及监护人同意书，不得隐瞒年龄、冒用他人身份信息注册。</li>
+                                <li>不得使用虚假、伪造、违规的身份信息注册账号，不得注册与其他玩家、管理员昵称重复、相似，或带有侮辱性、攻击性、歧视性、敏感词汇（包括但不限于低俗文字、暴力词汇、敏感标识）的昵称，不得使用模仿管理员、服务器官方的昵称，避免误导其他玩家，若发现此类昵称，管理组有权责令玩家限期修改，拒不修改的，将限制账号权限直至封禁。</li>
+                                <li>玩家所使用的游戏账号，其所有权与使用权均归属玩家本人。玩家对自身账号负有保管、保密、安全使用的全部责任。因玩家自身原因导致账号被盗、共享、转借、代充、代练所产生的一切后果，由玩家本人自行承担，服务器管理组仅提供游戏环境与秩序维护，不对玩家账号安全承担责任，不得转借、出租、出售、赠与他人，所有责任由账号本人承担，服务器管理组不承担任何责任，且不提供账号找回、违规撤销、充值追回等相关服务。</li>
+                                <li>玩家需妥善保管账号密码、绑定的联系方式及支付账户信息，不得向他人泄露，若发现账号密码泄露，需及时修改密码并联系管理组备案；若发现账号被盗，需及时提供注册信息、登录记录、绑定信息等相关证据，管理组将尽力协助排查，但不保证一定能找回账号及账号内资源。</li>
+                                <li>禁止恶意注册多个账号（小号、分身账号），不得利用小号进行违规操作，包括但不限于刷资源、恶意攻击他人、规避处分、恶意刷单氪金、扰乱服务器秩序等，一经查实，所有关联账号将一并予以封禁处理，且不接受任何形式的申诉，账号内所有资源、氪金余额不予退还。</li>
+                                <li>若玩家因正常需求需注册多个账号，需提前向管理组说明原因并提供相关身份信息，经管理组审核通过后方可注册，且多个账号不得相互配合进行违规操作，否则将按恶意注册处理。</li>
+                                <li>玩家若发现账号被盗、异常登录、密码被篡改等情况，需在24小时内联系管理组，提供相关证据，管理组将及时介入排查，核实后可暂时冻结账号，防止损失扩大。若因账号被盗导致的违规行为，经核实后可酌情减轻或撤销处分，但账号本人仍需承担部分责任（如账号被盗后未及时报备导致的损失）。</li>
+                                <li>玩家可申请注销账号，注销前需清空账号内所有可转移资源，解除与公会、其他玩家的关联关系，提交注销申请后，管理组将在7日内完成审核，审核通过后，账号将被永久注销，注销后无法恢复，账号内所有资源、氪金余额不予退还，玩家需自行承担注销带来的一切损失。</li>
+                            </ul>
+                            
+                            <h4 class="text-xl font-semibold mb-3 text-secondary">1.2 年龄要求与未成年人保护</h4>
+                            <ul class="list-disc pl-6 space-y-2">
+                                <li>本服务器明确要求：未满 12 周岁的玩家禁止注册加入本服务器。所有玩家在注册时，即视为确认自身年龄符合本服务器准入要求，自愿承担因隐瞒年龄、冒用他人身份所产生的一切法律责任与后果。若管理组发现或接到举报，证实某玩家未满 12 周岁，管理组有权立即注销其账号，且不提供任何形式的补偿或退款。</li>
+                                <li>已满 12 周岁但未满 18 周岁的未成年人玩家，必须在其法定监护人的明确同意下，方可注册并使用本服务器服务。未成年人玩家的游戏时长、游戏行为及任何形式的消费行为（包括但不限于未来可能开放的氪金、赞助等），均需严格遵守国家相关法律法规，并由其法定监护人履行监护责任，自行监督与限制。本服务器不具备官方健康系统、身份核验能力及强制限制功能，不对未成年人玩家的游戏时长、消费行为承担监护责任。</li>
+                                <li>本服务器目前未提供任何形式的付费、氪金或充值服务。若未来开放付费服务，将严格遵守国家相关法律法规，明确要求未成年人玩家的付费行为需经监护人同意，并设置合理的限额提示与风险告知，由监护人履行监护责任，自行监督与限制。</li>
+                                <li>管理组将对所有玩家予以适当引导，规范其游戏行为与聊天言行。若发现未成年人玩家出现明显低龄化、恶意捣乱、无视规则、言行不当等情况，管理组将予以相应处分，直至封禁账号，并有权通知其监护人，协同进行教育引导。</li>
+                                <li>已满 18 周岁的成年玩家，需以成熟、理性的态度参与游戏互动，承担起相应的责任。若出现幼稚化、恶意违规、影响他人游戏体验等行为，将依法依规予以处分。</li>
+                                <li>无论年龄大小，所有玩家均需保持文明、礼貌的言行，不得因年龄差异歧视、嘲讽其他玩家，不得利用年龄优势或劣势恶意挑衅、骚扰他人，不得诱导未成年人玩家违规氪金、违规操作，违者将视情节予以警告及以上处分，情节严重的，予以封禁处理。</li>
+                                <li>服务器会定期举办社区活动，欢迎所有玩家积极参与，共同创造愉快的游戏体验。
+                                    <span class="riddle" data-riddle="1">如果你知道这是什么请点击它</span>
+                                    <div class="hidden-message" id="riddle1">生活中充满了喜剧</div>
+                                </li>
+                                <li>未成年人玩家的监护人需履行监护职责，妥善保管自身身份证信息、支付账户信息，不得让未成年人擅自使用，若因监护人未履行监护职责，导致未成年人擅自注册、违规氪金、违规操作的，所有责任由监护人承担，服务器不承担任何连带责任，已产生的充值损失、违规后果由监护人自行承担。若监护人发现未成年人擅自注册、违规氪金，可凭相关证明（监护人身份证、未成年人身份证、监护关系证明）联系管理组，申请注销账号、退还未使用的氪金余额（扣除已使用的道具对应价值），管理组将在7个工作日内完成审核处理。</li>
+                            </ul>
+                            
+                            <h4 class="text-xl font-semibold mb-3 text-secondary">1.3 公平生存规则</h4>
+                            <ul class="list-disc pl-6 space-y-2">
+                                <li>本服务器为生存建筑服，核心玩法为生存探索与建筑创作，玩家需通过自身努力采集资源、建造建筑、发展生存，不得利用任何不正当手段获取资源、提升实力，确保生存的公平性，氪金玩家与普通玩家仅在游戏体验优化上有差异（如获得便捷性道具、装饰性道具），不享有影响游戏公平性的特权（如无敌、快速获取稀有资源等）。</li>
+                                <li>禁止一切形式的作弊行为，但允许使用安全的本地客户端（如矿透客户端），矿透客户端仅可用于查看矿石位置，不得用于其他作弊用途（如透视玩家、怪物位置、他人建筑内部、卡BUG等），若发现玩家利用矿透客户端进行违规操作，将予以警告，责令关闭违规客户端，情节严重的，予以临时封禁，屡教不改的，予以永久封禁。</li>
+                                <li>禁止使用任何外挂，包括但不限于飞行挂、加速挂、自动挖矿挂、自动打怪挂、穿墙挂等，禁止使用修改器修改游戏数据、篡改服务器数据，禁止利用游戏BUG卡权限，不得利用BUG获取不正当利益。</li>
+                                <li>若发现游戏BUG，玩家需及时向管理组举报，说明BUG的具体情况、触发方式，不得私自利用BUG，不得向他人传播BUG，若私自利用BUG，将视情节予以警告、临时封禁，直至永久封禁，若因此造成服务器损失，需承担相应赔偿责任；若向他人传播BUG，导致多人利用BUG违规，将加重处分，同时追究传播者的责任。</li>
+                                <li>管理组接到BUG举报后，将及时组织技术人员排查修复，修复完成后将通过服务器公告通知所有玩家，对积极举报BUG、为服务器维护作出贡献的玩家，将给予适当奖励（如游戏资源、小额氪金道具等）。</li>
+                                <li>禁止故意制造服务器卡顿、崩溃，不得建造恶意卡服、炸服的装置，不得大量堆积物品、实体（如大量放置生物、物品堆），不得恶意占用服务器资源，不得利用红石机器、命令方块等造成服务器负载过高，禁止建造大型生电机器（具体标准由管理组根据服务器负载制定并公示，小型生电机器需经管理组审核通过后方可建造）。</li>
+                                <li>若发现此类行为，管理组将立即清理相关物品、装置，责令玩家限期整改，视情节予以警告、临时封禁，直至永久封禁，若因此造成服务器瘫痪、损失的，需承担相应赔偿责任，账号内所有资源、氪金余额不予退还。</li>
+                                <li>禁止未经允许私自挪用、破坏他人的建筑、物品、机器、田地、动物等私人财产，不得擅自进入他人圈地范围内（圈地功能需玩家自行开启，圈地范围需符合规定），不得擅自修改、拆除、装饰他人建筑，不得偷拿、盗取他人物品，不得恶意破坏他人的红石机器、农田、养殖区等。</li>
+                                <li>若因误操作造成他人损失，需及时向对方道歉并赔偿相应损失（如赔偿同等资源、道具）；若故意为之，管理组将责令其赔偿损失，并予以警告及以上处分，情节严重的，予以封禁处理，若造成他人重大损失（如氪金获得的稀有道具、大型建筑被破坏），需承担相应的赔偿责任，账号内资源、氪金余额可用于抵扣赔偿。</li>
+                                <li>禁止恶意圈地、霸占大量资源，不得利用圈地插件恶意圈占公共区域、资源点、交通要道，不得阻碍他人正常游戏、采集资源、建造建筑。圈地范围需合理，不得超出自身生存建筑需求，单个玩家圈地面积不得超过规定标准（具体标准由管理组公示），若发现违规圈地，管理组将责令其限期整改，拆除违规圈地，若拒不整改，将予以警告、临时封禁，并清理违规圈地内容，圈地内的资源不予退还。</li>
+                                <li>公共区域的资源归所有玩家共同所有，玩家可合理采集、使用，但不得恶意霸占、过度开采，不得在公共区域乱搭乱建、堆放垃圾，不得破坏公共设施（如公共道路、公共建筑、公共资源点），违者将予以警告，责令清理整改，情节严重的，予以临时封禁。</li>
+                                <li>禁止在游戏内进行恶意PVP、围堵、追杀其他玩家，除非双方同时自愿PVP，否则不得主动攻击、伤害其他玩家，不得恶意干扰他人正常游戏，不得在他人建筑附近、公共区域制造混乱（如放置恶意方块、召唤大量怪物）。</li>
+                                <li>若发生恶意PK、围堵等行为，管理组将立即制止，责令违规玩家向被伤害玩家道歉、赔偿损失，视情节予以警告、临时封禁，屡教不改的，予以永久封禁；若双方自愿PK但违反报备规则、影响他人，将予以警告，责令停止PVP，情节严重的，予以临时封禁。</li>
+                                <li>玩家之间可以进行公平交易，交易需遵循自愿、公平、公正的原则，不得进行欺诈、胁迫、恶意压价等行为，不得交易违规物品（如作弊获得的资源、未授权的氪金道具等），不得交易账号和其内部资源。</li>
+                                <li>若发现交易违规，管理组将撤销交易，没收违规物品，视情节予以警告及以上处分，若因线下交易导致的损失，由玩家自行承担，服务器不承担任何责任；若发现交易欺诈，将责令欺诈方退还被欺诈方损失，情节严重的，予以封禁处理，账号内资源、氪金余额可用于抵扣退还金额。</li>
+                                <li>玩家需合理利用服务器资源，不得过度开采资源、破坏地形植被，需保持游戏环境的平衡，不得恶意破坏地形（如大规模挖空地形、堵塞河流、破坏地貌），若发现恶意破坏地形，管理组将责令其限期恢复，拒不恢复的，予以警告及以上处分，情节严重的，予以临时封禁。</li>
+                                <li>禁止在服务器内放置违规物品（如恶意命令方块、违规红石装置、作弊道具等），不得使用违规指令，不得传播违规指令、作弊方法，若发现此类行为，管理组将立即清理违规物品、撤销指令，视情节予以警告、临时封禁，直至永久封禁，若因此造成服务器损失，需承担相应赔偿责任。</li>
+                                <li>玩家在生存过程中，若遇到困难（如被怪物围困、资源匮乏等），可向其他玩家求助，也可联系管理组寻求协助，管理组将在合理范围内提供帮助（不影响游戏公平性），不得要求管理组提供违规帮助（如直接给予大量资源、开启作弊权限等），违者将予以警告。</li>
+                                <li>死亡后可以请求其他玩家帮助找回物品，但不应要求赔偿或抱怨。
+                                    <span class="riddle" data-riddle="2">如果你知道这是什么请点击它</span>
+                                    <div class="hidden-message" id="riddle2">即使如此也会有悲剧</div>
+                                </li>
+                            </ul>
+                            
+                            <h4 class="text-xl font-semibold mb-3 text-secondary">1.4 建筑规范</h4>
+                            <ul class="list-disc pl-6 space-y-2">
+                                <li>建筑创作是本服务器的核心特色之一，所有玩家在服务器内的建筑行为，需符合本规范要求，兼顾美观、健康、合规、安全，不得建造违规内容，不得影响服务器环境及其他玩家的游戏体验，鼓励玩家创作优质、有创意的建筑作品，服务器将不定期举办建筑活动，对优秀作品给予奖励（包括氪金道具、游戏资源等）。</li>
+                                <li>建筑内容必须健康、积极、文明，禁止建造低俗、恶心、暴力、攻击性、敏感图案（包括但不限于低俗文字、暴力画面、敏感标识、歧视性图案、恐怖图案等），禁止建造模仿恐怖、血腥、色情元素的建筑，禁止建造可能引起他人不适的建筑，禁止建造违反国家法律法规、公序良俗的建筑，禁止建造侵犯他人版权的建筑。</li>
+                                <li>若发现此类建筑，管理组将责令其限期拆除、整改，若拒不整改，将予以警告，并强制拆除违规建筑，情节严重的，予以封禁处理，若因此造成他人损失，需承担相应赔偿责任；若建造的建筑侵犯他人版权，经版权人举报并提供证据，管理组将责令拆除建筑，责令侵权玩家向版权人道歉、赔偿损失，视情节予以警告及以上处分。</li>
+                                <li>禁止建造明显用于恶意卡服、炸服、拖慢服务器运行的装置，包括但不限于大量堆积实体、红石高频机器、恶意命令方块装置等，禁止建造大型生电机器（具体标准由管理组根据服务器负载制定并公示，小型生电机器需经管理组审核通过后方可建造），禁止建造阻碍他人正常游戏、影响他人建筑视野的违规建筑。</li>
+                                <li>若发现此类建筑，管理组将立即拆除违规部分，责令玩家限期整改，视情节予以警告、临时封禁，直至永久封禁，若因此造成服务器负载过高、卡顿、崩溃，需承担相应赔偿责任，账号内所有资源、氪金余额不予退还。</li>
+                                <li>公共区域建筑需保持整洁、有序，不得随意破坏公共设施，不得在公共区域乱搭乱建、堆放垃圾，不得占用公共道路、公共资源建造私人建筑，公共区域的建筑需符合服务器整体风格，若玩家需在公共区域建造建筑，需提前向管理组提交申请，说明建筑设计、用途，经管理组审核通过后方可建造，审核不通过的，需按要求修改设计方案。</li>
+                                <li>若在公共区域建造违规建筑，管理组将责令其限期拆除、清理，拒不整改的，予以警告、临时封禁，并强制拆除违规建筑，建筑内的资源不予退还。</li>
+                                <li>他人建筑未经作者允许，不得擅自修改、拆除、装饰、占用，不得在他人建筑附近建造影响其美观、影响其正常使用的建筑（如在他人建筑门口建造遮挡物、在他人建筑附近建造低俗建筑），若需借鉴、模仿他人建筑，需提前征得作者同意，并在作品中标注原作者及来源，不得冒充他人原创建筑，不得盗用他人建筑设计创意。（须符合CC BY-SA 3.0 中国大陆版）</li>
+                                <li>若擅自修改、破坏他人建筑，管理组将责令其恢复原状、向作者道歉、赔偿损失，视情节予以警告及以上处分，情节严重的，予以封禁处理；若冒充他人原创建筑、盗用他人设计，将责令删除违规建筑，公开道歉，视情节予以警告、临时封禁，直至永久封禁。</li>
+                                <li>建筑过程中，不得恶意破坏地形、植被，不得在建筑过程中制造大量垃圾、废弃方块，建筑完成后，需清理建筑周边的废弃材料、垃圾，若未清理，管理组将责令其限期清理，拒不清理的，予以警告。</li>
+                                <li>玩家可申请建筑保护，对于优质、有创意的建筑作品，可向管理组提交保护申请，经管理组审核通过后，将对建筑进行保护，禁止他人破坏、修改。若保护期限届满，玩家需重新提交保护申请，未提交的，保护自动失效。</li>
+                                <li>禁止建造用于违规用途的建筑（如用于卡BUG、隐藏作弊道具、恶意围堵他人的建筑），若发现此类建筑，管理组将立即拆除，视情节予以警告、临时封禁，直至永久封禁，建筑内的资源、道具不予退还。</li>
+                                <li>长期不在线的玩家建筑可能会被管理员清理，建议定期登录维护自己的建筑。
+                                    <span class="riddle" data-riddle="3">如果你知道这是什么请点击它</span>
+                                    <div class="hidden-message" id="riddle3">命运由你决定</div>
+                                </li>
+                            </ul>
+                            
+                            <h4 class="text-xl font-semibold mb-3 text-secondary">1.5 聊天规范</h4>
+                            <ul class="list-disc pl-6 space-y-2">
+                                <li>服务器聊天频道（包括游戏内公共聊天、私聊、社群聊天等）是成员交流互动的重要渠道，所有玩家在聊天过程中，需保持文明、礼貌，严格遵守以下规范，不得发表违规言论，不得利用聊天频道传播违规内容，不得扰乱聊天秩序。</li>
+                                <li>禁止刷屏、连续发送无意义内容、滥用表情符号、重复发送相同或相似内容，不得发送大量空白信息、乱码信息，不得恶意占用聊天频道，影响他人正常交流，违者将予以提醒，提醒后不改的，予以警告，情节严重的，予以临时封禁，限制聊天权限。</li>
+                                <li>禁止发布广告、外链、二维码、引流信息、联系方式等无关内容，包括但不限于其他游戏广告、社群广告、商品广告、个人联系方式、外链链接、二维码等，禁止发布诱导他人线下交易、私下转账的信息，违者将予以警告，情节严重的，予以临时封禁，屡教不改的，予以永久封禁。</li>
+                                <li>禁止发布服务器氪金相关的违规广告（如夸大氪金效果、诱导未成年人氪金、使用极限词宣传氪金道具等），氪金宣传需符合法律法规及本条例规定，不得误导玩家。</li>
+                                <li>禁止讨论敏感时政、暴力、色情、低俗、封建迷信、恐怖主义等违规内容，不得发表违背国家法律法规、公序良俗的言论，不得发表支持极端主义、种族歧视、法西斯主义等不当言论，不得传播血腥、暴力、色情图片、视频、文字等内容，不得传播谣言、虚假信息，违者将直接予以封禁处理，情节严重的，将上报相关部门。</li>
+                                <li>禁止威胁、恐吓、骚扰、辱骂、嘲讽、阴阳怪气其他玩家，不得进行人身攻击、造谣、传谣、恶意抹黑他人，不得泄露他人隐私（包括但不限于真实姓名、联系方式、住址、照片、注册信息、氪金记录等），不得恶意P图、伪造他人言论、恶意诋毁他人声誉，违者将视情节予以警告、临时封禁，直至永久封禁，若造成他人人身、名誉损失，管理组有权追究其相应责任，账号内资源、氪金余额可用于抵扣赔偿。</li>
+                                <li>禁止在聊天频道内引战、带节奏、挑起矛盾，不得发表煽动性言论，不得恶意挑起成员之间的冲突、争吵，不得拉帮结派、组织骂战，不得讨论他人违规行为、处分情况，不得恶意质疑管理组的处分决定、运营行为，若有异议，可通过指定渠道申诉，违者将予以警告，情节严重的，予以临时封禁，直至永久封禁。</li>
+                                <li>禁止使用不文明用语、脏话、侮辱性语言，不得使用带有歧视性、攻击性的昵称、签名，不得模仿管理组成员的昵称、语气发布信息，误导其他玩家，不得使用违规符号、乱码作为昵称、签名，违者将予以提醒，提醒后不改的，予以警告，情节严重的，予以临时封禁，责令修改昵称、签名。</li>
+                                <li>聊天内容需积极、健康、友善，鼓励玩家交流游戏经验、建筑技巧、生存心得，鼓励玩家相互帮助、友好互动，禁止发表消极、负面、恶意的言论，不得传播不利于服务器发展的言论，若发现此类言论，管理组将予以提醒、删除，提醒后不改的，予以警告。</li>
+                                <li>禁止在聊天频道内传播作弊方法、BUG触发方式、违规客户端下载链接等内容，不得教唆他人违规、作弊，违者将予以警告、临时封禁，直至永久封禁，若因此导致多人违规，将加重处分。</li>
+                                <li>玩家在私聊过程中，同样需遵守本聊天规范，不得发送违规内容、骚扰信息，不得恶意诱导他人违规、氪金，若发现私聊违规，经被骚扰方举报并提供证据，管理组将予以警告、临时封禁，直至永久封禁，情节严重的，予以永久封禁。</li>
+                            </ul>
+                            
+                            <h4 class="text-xl font-semibold mb-3 text-secondary">1.6 互动规范</h4>
+                            <ul class="list-disc pl-6 space-y-2">
+                                <li>玩家之间应相互尊重、相互包容、相互帮助，营造团结友爱的社群氛围，主动帮助新玩家熟悉服务器规则、适应游戏环境、掌握生存建筑技巧，不得排挤、孤立、欺凌新玩家或弱势玩家，不得拉帮结派、形成小团体孤立、打压其他玩家，违者将予以警告，情节严重的，予以临时封禁，直至永久封禁。</li>
+                                <li>玩家之间可以组队生存、合作建筑，组队过程中需遵循自愿、平等、互助的原则，不得强迫他人组队，不得在组队过程中欺骗、压榨队友，不得私自占有组队获得的资源、道具，若因组队产生矛盾，应理性沟通解决，不得恶意争吵、攻击，若无法解决，可联系管理组调解，违者将予以警告，情节严重的，予以临时封禁。</li>
+                                <li>禁止恶意挑衅、骚扰其他玩家，包括但不限于连续私信骚扰、游戏内围堵、恶意跟踪、言语威胁、故意破坏他人游戏体验等，若发现此类行为，管理组将立即介入处理，责令违规玩家停止骚扰，向被骚扰方道歉，视情节予以警告、临时封禁，直至永久封禁。</li>
+                                <li>玩家之间可以进行公平的建筑比拼、生存挑战等互动活动，活动需提前向管理组报备，明确活动规则、范围、奖励，不得影响其他玩家正常游戏，不得在活动过程中违规、作弊，不得恶意攻击活动参与者，若活动违规，管理组将立即终止活动，视情节予以警告及以上处分。</li>
+                                <li>禁止模仿管理组成员、服务器官方发布通知、指令，不得冒充管理组、官方人员误导其他玩家、要求其他玩家违规操作、氪金，若发现此类行为，将予以警告、临时封禁，情节严重的，予以永久封禁，若因此造成其他玩家损失，需承担相应赔偿责任。</li>
+                                <li>玩家若对其他玩家的行为有异议、对管理组的处分决定有异议，需通过理性、合法的方式表达，不得恶意闹事、辱骂、威胁，不得煽动其他玩家抵制服务器、管理组，不得发布不利于服务器发展的言论，违者将予以警告、临时封禁，直至永久封禁。</li>
+                                <li>鼓励玩家积极参与服务器举办的各类活动（如建筑比赛、生存挑战、节日活动等），活动过程中需遵守活动规则，不得违规、作弊，不得恶意干扰活动秩序，若违规参与活动，将取消活动资格，没收活动奖励，视情节予以警告及以上处分；对活动有异议的，可向管理组反馈，不得恶意投诉、闹事。</li>
+                                <li>禁止玩家之间恶意攀比、嘲讽他人的游戏水平、建筑作品、氪金金额，不得因他人不氪金、氪金金额少而歧视、嘲讽他人，不得因他人氪金金额多而恶意依附、骚扰他人，违者将予以警告，情节严重的，予以临时封禁。</li>
+                            </ul>
+                            
+                            <h4 class="text-xl font-semibold mb-3 text-secondary">1.7 版权保护规范</h4>
+                            <ul class="list-disc pl-6 space-y-2">
+                                <li>本服务器尊重所有玩家的原创成果，保护原创者的合法权益，严格遵循"避风港规则"，所有玩家在服务器内发布的原创内容（包括但不限于建筑作品、红石设计、指令创作、地图作品、文案内容、游戏视频等），均受本规范保护，未经原创者允许，不得擅自盗用、转载、模仿、篡改、传播。</li>
+                                <li>玩家发布的原创建筑、红石设计、指令作品等，原创者拥有完整的所有权和使用权，其他玩家若需借鉴、模仿、复刻，需提前征得原创者同意，并在作品中标注原作者及来源，不得冒充他人原创，不得盗用他人作品的核心创意、设计理念，不得恶意篡改他人原创作品，不得将他人原创作品用于商业用途（如出售、引流）。</li>
+                                <li>若违反本条规定，管理组将责令其删除违规内容、公开道歉，视情节予以警告、临时封禁，直至永久封禁，若造成原创者损失，需承担相应赔偿责任（包括但不限于氪金道具、游戏资源等），账号内资源、氪金余额可用于抵扣赔偿。</li>
+                                <li>服务器内的公共素材、地图、资源、指令等，默认归服务器共同使用，管理组有权对其进行整理、修改、优化，用于服务器的运营和发展，但不得用于商业用途，不得擅自泄露给外部人员，不得侵犯他人版权。</li>
+                                <li>禁止盗用其他服务器、平台的地图、资源、规则、创意等内容，不得将外部的侵权内容搬运至本服务器，不得使用未经授权的版权素材（如音乐、图片、模型等）用于建筑、文案、活动等，若发现此类行为，管理组将立即删除违规内容，予以警告，情节严重的，予以封禁处理，若因此给本服务器造成声誉、利益损失，将追究其相应责任，若涉及版权纠纷，由侵权玩家自行承担全部责任。</li>
+                                <li>玩家若发现自身原创作品被侵权，可向管理组提交举报申请，提供相关证据（原创证明、侵权截图、时间等），管理组将在7日内进行调查核实，核实后将责令侵权玩家删除违规内容、公开道歉、赔偿损失，视情节予以警告及以上处分，若侵权情节严重，将协助原创者维护合法权益。</li>
+                                <li>鼓励玩家发布原创内容，对于优质原创作品，管理组将予以表彰、推广，为原创者提供相应的奖励（包括氪金道具、游戏资源、建筑保护等），营造尊重原创、鼓励创新的良好氛围。</li>
+                                <li>禁止伪造原创证明、恶意举报他人侵权，若发现诬告、陷害他人侵权，将予以警告，情节严重的，予以临时封禁，直至永久封禁，若造成他人声誉、利益损失，需承担相应赔偿责任。</li>
+                            </ul>
+                            
+                            <h4 class="text-xl font-semibold mb-3 text-secondary">1.8 氪金规范</h4>
+                            <ul class="list-disc pl-6 space-y-2">
+                                <li>本服务器目前暂未开放氪金服务，本章规范为未来开放付费服务的前置约定，开放后将通过服务器公告公示并正式生效！</li>
+                                <li>本服务器提供自愿氪金服务，氪金行为遵循"自愿、公平、公正、合规"的原则，玩家自主决定是否充值、充值金额，充值后视为认可本氪金规范及相关约定，除法律规定的特殊情形外，充值金额不予退还，玩家需理性氪金，量力而行，不得过度氪金、借贷氪金。</li>
+                                <li>服务器所有氪金项目、价格、道具功效均明确公示，无隐藏消费、强制消费，不使用极限词、虚假宣传、诱导性宣传，不夸大氪金道具功效，氪金道具仅用于优化游戏体验（如便捷性道具、装饰性道具、资源加速道具等），不影响游戏公平性，不提供任何破坏游戏平衡的特权（如无敌、快速获取稀有资源、作弊权限等），严格遵守《中华人民共和国广告法》相关规定，杜绝违规宣传行为。</li>
+                                <li>氪金对象仅限已满18周岁的成年玩家，未成年人玩家氪金需经法定监护人同意，严格遵守国家相关规定，服务器已设置未成年人充值限额，具体如下：已满12周岁未满16周岁的未成年人，单次充值不超过50元，每月累计不超过200元；已满16周岁未满18周岁的未成年人，单次充值不超过100元，每月累计不超过400元，超出限额的充值将无法完成，同时会向监护人推送充值通知。</li>
+                                <li>若未成年人未经监护人同意擅自氪金，监护人可凭相关证明（监护人身份证、未成年人身份证、监护关系证明、充值记录）联系管理组，申请退还未使用的氪金余额（扣除已使用的道具对应价值），管理组将在7日内完成审核处理，核实后予以退还，若监护人未履行监护职责导致未成年人擅自氪金，将酌情减少退还比例或不予退还。</li>
+                                <li>玩家充值时，需通过服务器官方指定的充值渠道（如官方充值入口、授权充值平台）进行充值，不得通过非官方渠道（如私人转账、第三方非授权平台）充值，若通过非官方渠道充值，导致充值失败、账号被盗、氪金余额无法到账等损失，由玩家自行承担，服务器不承担任何责任，且不提供任何补救措施。</li>
+                                <li>禁止玩家之间私下交易氪金道具、氪金余额，禁止线下交易氪金相关内容，若因私下交易导致的损失，由玩家自行承担，服务器不承担任何责任，同时将视情节对参与私下交易的玩家予以警告及以上处分。</li>
+                                <li>氪金道具的发放、使用需符合本条例规定，玩家充值后，服务器将在24小时内发放相应的氪金道具，若因系统故障、网络问题导致道具未到账，玩家需及时联系管理组，提供充值记录、账号信息等相关证据，管理组将核实后予以补发，不得恶意投诉、闹事，否则将予以警告。</li>
+                                <li>氪金道具不得用于违规用途（如作弊、恶意攻击他人、破坏游戏平衡等），若发现违规使用氪金道具，管理组将没收道具，视情节予以警告、临时封禁，直至永久封禁，账号内剩余氪金余额不予退还。</li>
+                                <li>服务器有权根据运营情况，调整氪金项目、价格、道具功效，但调整前将通过服务器公告、社群通知等渠道公示，公示后3日内生效，玩家若不认可调整内容，可选择停止氪金，不得因此恶意投诉、闹事、诋毁服务器，否则将予以警告及以上处分。</li>
+                                <li>玩家若对氪金服务有异议（如道具未到账、道具功效不符、充值错误等），需在充值后7日内联系管理组，提供相关证据（充值记录、账号信息、截图等），管理组将在7日内进行调查核实，给出合理解决方案，不得恶意投诉、闹事、辱骂管理组，不得发布不利于服务器的言论，否则将予以警告及以上处分。</li>
+                                <li>若因玩家自身操作失误（如充错账号、选错道具）导致的损失，由玩家自行承担，服务器不承担任何责任，不提供补救措施；若因服务器系统故障导致的充值损失，管理组将核实后予以退还或补发道具。</li>
+                                <li>禁止恶意刷单氪金、恶意充值后申请退款、恶意投诉氪金服务，禁止利用氪金道具进行违规操作、扰乱服务器秩序，若发现此类行为，管理组将没收氪金道具、冻结氪金余额，视情节予以警告、临时封禁，直至永久封禁，已充值金额不予退还，若造成服务器损失，需承担相应赔偿责任。</li>
+                                <li>氪金余额仅可用于服务器内的氪金项目消费，不得兑换现金、转账，不得用于其他用途，玩家账号注销后，账号内剩余氪金余额不予退还，玩家需自行承担损失；玩家账号被封禁后，账号内剩余氪金余额不予退还，若封禁系服务器误判，经核实后可予以退还。</li>
+                                <li>服务器严格保护玩家的氪金记录、支付信息等隐私，不得泄露玩家的氪金记录、支付账号、身份证信息等，不得将玩家氪金信息用于其他用途，严格遵守《中华人民共和国个人信息保护法》相关规定，若因服务器原因导致玩家氪金信息泄露，将承担相应的法律责任。</li>
+                            </ul>
+                            
+                            <h4 class="text-xl font-semibold mb-3 text-secondary">1.9 违规处理规则</h4>
+                            <ul class="list-disc pl-6 space-y-2">
+                                <li>所有玩家违反本普通玩家通用规则及本条例其他相关规定的，管理组将根据违规情节轻重、过往行为记录、造成的影响大小，予以相应处分，所有处分记录将永久存档，一经记录不予移除，处分结果将通过服务器公告、私聊等方式通知涉事玩家。</li>
+                                <li>管理组在作出处分决定时，将坚持公平、公正、公开的原则，充分调查核实违规事实，听取涉事玩家的陈述和申辩，确保处分决定合理、合法、合规，不得滥用处分权限，不得徇私舞弊、偏袒他人。</li>
+                                <li>处分共分为五档级别，从低到高依次为：提醒、警告、严重警告、临时封禁、永久封禁，提醒作为非处分性质的警示措施，同样予以记录，累积达到一定次数将升级为正式处分。</li>
+                                <li>提醒（非处罚，仅警示）：适用于玩家的轻微违规行为，且违规影响较小、未造成实际损失，或玩家初次出现不规范行为，管理组认定无需予以正式处分的情况。</li>
+                                <li>常见的提醒情形包括：在聊天频道轻微刷屏、连续发送无意义内容，经管理组提醒后立即改正；使用轻微不文明用语，但无恶意，经提醒后立即改正；初次出现轻微违规行为，态度良好，主动承认错误并改正。</li>
+                                <li>提醒将予以记录，累积受到3次提醒，或受到提醒后拒不改正、再次出现同类违规行为的，将升级为警告处分，提醒记录将永久存档，作为后续处分的参考依据。</li>
+                                <li>警告：正式处分的最低级别，适用于玩家的一般违规行为，违规情节较轻，但已造成一定影响，或经提醒后仍不改正的情况。受到警告处分的，警告计数将增加1次；受到严重警告处分的，警告计数将增加2次。</li>
+                                <li>警告计数累积达到3次及以上的，管理组有权根据情节，予以最高为临时封禁的处分；警告计数累积达到5次及以上的，管理组有权予以最高为永久封禁的处分。</li>
+                                <li>常见的警告情形包括：轻微骚扰、攻击他人，包括辱骂、嘲讽、阴阳怪气等，未造成严重影响；就游戏内的语言、玩法等差异，对其他玩家进行攻击、歧视；发布轻微时政内容、敏感言论，未造成严重影响；谎报版权信息，将未经授权的素材用于自己的作品，并声称由自己制作；泄露入服暗号、申请书答案等，未造成严重影响；轻微卡BUG，但未利用BUG牟利、未造成服务器或他人损失；轻微违规聊天、违规互动，经提醒后不改；违规建造小型建筑，未造成影响，经提醒后不改；未按规定完成新手引导，经提醒后不改；轻微违规交易，未造成损失。</li>
+                                <li>严重警告：比警告更高级别的处分，适用于玩家的违规行为情节较重，造成了一定的不良影响，或多次受到警告后仍不改正的情况。受到严重警告处分的，警告计数增加2次，若警告计数累积达到3次及以上，将予以临时封禁处分；累积达到5次及以上，将予以永久封禁处分。</li>
+                                <li>常见的严重警告情形包括：恶意篡改服务器公共内容、管理公告等；多次进行钓鱼、发表迷惑言论，经警告后仍不改正；严重影响服务器秩序；多次骚扰、攻击他人，经警告后仍不改正，造成他人一定困扰；发布较为敏感的时政内容、违规言论，造成一定不良影响；经警告后仍不改正；泄露入服暗号、申请书答案等，造成一定影响（如少量违规入服等）；多次轻微卡BUG，经警告后仍不改正，或利用BUG获取少量不正当利益；违规建造中大型建筑，影响他人游戏体验，经警告后不改；恶意圈地，经警告后不改；违规交易，造成他人少量损失；轻微违规氪金，经警告后不改；传播轻微违规内容，经警告后不改。</li>
+                                <li>临时封禁：较为严厉的处分，适用于玩家的违规行为情节严重，造成了明显的不良影响，或多次受到警告、严重警告后仍不改正的情况，封禁时长根据违规情节轻重，分为1天、3天、7天不等，具体时长由管理组根据实际情况决定。</li>
+                                <li>被临时封禁的玩家，在封禁期限内，无法进入服务器、无法参与服务器内的任何互动、无法发布内容、无法评分、无法进行氪金，封禁期限届满后，自动解除封禁，但其违规记录仍将永久存档。</li>
+                                <li>常见的临时封禁情形包括：警告计数累积达到3次及以上；多次受到警告、严重警告后，仍拒不改正违规行为；恶意破坏他人小型建筑、偷拿他人少量物品，造成他人一定损失；恶意引战、带节奏，挑起成员之间的冲突、骂战，影响服务器社群氛围；故意卡BUG、利用BUG获取不正当利益，情节较轻；多次发布广告、引流信息，经警告后仍不改正；多次泄露入服暗号，造成一定规模的违规入服；诬告、陷害其他玩家，情节较轻；冒充管理组成员，误导其他玩家，情节较轻；违规建造大型违规建筑，影响服务器环境，经警告后不改；恶意破坏地形，经警告后不改；违规氪金，情节较轻（如未成年人超出限额充值少量金额）；传播违规内容，情节较轻；恶意骚扰他人，经警告后不改。</li>
+                                <li>被临时封禁的玩家，在封禁期间，可向管理组提交悔过申请，若态度良好、深刻认识到自身错误，管理组可根据实际情况，适当缩短封禁时长；若在封禁期间，试图通过小号、分身账号进入服务器，将加重处分，延长封禁时长，情节严重的，予以永久封禁。</li>
+                                <li>永久封禁（最高处罚）：适用于玩家的违规行为情节极其严重，造成了严重的不良影响、服务器损失或他人损失，或存在恶意行为、屡教不改的情况，被永久封禁的玩家，将终身无法进入本服务器，不得使用任何账号（包括小号、分身账号）再次入服，一经发现，立即予以永久封禁，且不接受任何形式的申诉。</li>
+                                <li>常见的永久封禁情形包括：使用任何外挂、作弊程序、作弊模组等，作弊行为一经查实；大规模破坏他人建筑、炸图、拆家，造成他人严重损失；大规模偷窃、洗劫他人物品、资源，造成他人严重损失；故意制造服务器卡顿、崩溃，破坏服务器稳定运行，造成服务器损失；人身攻击、辱骂管理组成员、威胁玩家，情节严重；造谣、传谣、泄露他人隐私、人肉搜索（开盒）他人，情节严重；冒充他人身份、管理组成员，恶意误导、欺骗其他玩家，情节严重；使用小号、分身账号绕过封禁，或多次被临时封禁后仍屡教不改；抄袭他人原创作品，情节严重，经警告后仍不改正；发表种族主义、法西斯主义、恐怖主义等极端言论，违反国家法律法规；恶意控分、操纵评分结果，情节严重，影响服务器公平环境；传播色情、暴力、血腥等违规内容，情节严重；违反国家法律法规，造成不良社会影响；恶意刷单氪金、恶意充值后申请退款，情节严重；利用氪金道具进行违规操作，破坏游戏平衡，情节严重；未经监护人同意，未成年人大额氪金，情节严重；通过非官方渠道充值，恶意投诉、闹事，情节严重；其他严重违反本条例及相关政策，情节极其恶劣的行为。</li>
+                                <li>被永久封禁的玩家，其违规记录将永久存档，管理组有权将其违规行为公示，以警示其他成员，若被永久封禁的玩家试图通过不正当手段进入服务器，或恶意诋毁、攻击本服务器，管理组将追究其相应责任，必要时上报相关部门。</li>
+                                <li>玩家违规后，若主动承认错误、积极整改、赔偿他人损失，管理组可酌情减轻处分；若拒不承认错误、抗拒管理、屡教不改，将加重处分。</li>
+                                <li>若玩家因不可抗力导致违规，经管理组核实后，可免于处分；若因服务器系统故障导致玩家违规，经核实后，可撤销处分，恢复玩家正常权限。</li>
+                            </ul>
+                            
+                            <h4 class="text-xl font-semibold mb-3 text-secondary">1.10 其他通用规则</h4>
+                            <ul class="list-disc pl-6 space-y-2">
+                                <li>玩家需自觉遵守服务器的各项公告、补充规定、临时通知，不得违反公告内容，若对公告内容有异议，可通过指定渠道向管理组反馈，不得恶意质疑、闹事、诋毁服务器。</li>
+                                <li>玩家需保护自身个人信息，不得向他人泄露注册信息、账号密码、支付信息、氪金记录等，若因个人信息泄露导致的损失，由玩家自行承担，服务器不承担任何责任。</li>
+                                <li>禁止利用服务器进行任何违法违规活动（如传播违法信息、诈骗、洗钱等），若发现此类行为，管理组将立即封禁账号，上报相关部门，追究其法律责任，若造成服务器损失，需承担相应赔偿责任。</li>
+                                <li>玩家若发现其他玩家违规，可向管理组提交举报申请，提供相关证据（截图、聊天记录、时间、相关人员ID等），管理组将在7日内进行调查核实，作出处理决定，并将处理结果告知举报人（举报人身份信息将予以保密）。</li>
+                                <li>禁止诬告、陷害其他玩家，禁止提交虚假举报材料，一经查实，将予以警告，情节严重的，予以临时封禁，直至永久封禁，若造成他人声誉、利益损失，需承担相应赔偿责任。</li>
+                                <li>为进一步维护服务器稳定与公平环境，保障生存建筑服的流畅运行，管理组根据服务器实际运行情况，制定本补充规则。本补充规则与主规则具有同等效力，所有玩家均须严格遵守。</li>
+                                <li>玩家在服务器内的正常活动范围限定为以出生点为中心 150000 格以内区域，超出该范围的探索、建造、资源采集等行为均属于违规。超出活动范围可能导致区块加载异常、服务器负载升高、数据丢失等问题，由此造成的一切损失由玩家自行承担，管理组不承担补偿、找回、修复责任。</li>
+                                <li>为保障服务器运行稳定，禁止建造大型生电机器，包括但不限于高频红石设备、大规模实体产生装置、超高效率刷怪、刷物、刷经验机器等可能造成服务器卡顿、延迟、崩溃的结构。小型、低负载、不影响服务器运行的简易红石设备可正常使用，若管理组判定某一生电装置影响服务器稳定，有权要求玩家限期拆除，拒不拆除的将予以强制清理，并视情节给予相应处分。</li>
+                                <li>本服务器允许玩家使用安全、本地、仅作用于自身客户端的辅助功能，包括但不限于矿透材质、矿物显示、亮度显示等不影响游戏公平性、不获取不正当优势、不干扰其他玩家的本地功能。严禁使用任何具有作弊性质的外挂、修改器、自动化程序、透视玩家功能、飞行、加速、穿墙等破坏公平性的客户端与模组，一经发现将按最严厉标准处理。</li>
+                                <li>服务器内所有自愿提供的支持、赠与、赞助、充值等行为，均属于玩家自主自愿行为。所有相关虚拟物品、游戏内便利权益均为服务性质，一旦发放不予退款。管理组不对虚拟物品负责兑换、变现、转让。</li>
+                                <li>本条例所有内容均符合国家现行法律法规，管理组有权根据运营需求进行调整、补充与完善。修订内容将提前公示，公示期满后自动生效。</li>
+                                <li>本规则仅限TuT联邦服务器（基岩版）内生效，最终解释权归TuT联邦服务器所有。</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="rule-section">
+                            <p class="text-center text-gray-400 mt-8">TuT联邦服务器管理组 编<br>本规则有AI部分生成内容<br>生效日期：2026年2月28日-2026年12月31日<br>日期及内容若有变更请以具体社区通知为准</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8">
+                        <h3 class="text-xl font-semibold mb-4">暗号验证</h3>
+                        <p class="text-gray-300 mb-4">请输入您在规则中发现的三段暗号：</p>
+                        
+                        <form id="riddleForm" class="space-y-4">
+                            <div>
+                                <label for="riddleAnswer1" class="block mb-2 font-medium">第一段暗号</label>
+                                <input type="text" id="riddleAnswer1" name="riddleAnswer1" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary" required>
+                            </div>
+                            
+                            <div>
+                                <label for="riddleAnswer2" class="block mb-2 font-medium">第二段暗号</label>
+                                <input type="text" id="riddleAnswer2" name="riddleAnswer2" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary" required>
+                            </div>
+                            
+                            <div>
+                                <label for="riddleAnswer3" class="block mb-2 font-medium">第三段暗号</label>
+                                <input type="text" id="riddleAnswer3" name="riddleAnswer3" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary" required>
+                            </div>
+                            
+                            <div class="flex justify-between">
+                                <button type="button" id="backToResultBtn" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition-all-300">
+                                    返回
+                                </button>
+                                <button type="submit" id="verifyRiddleBtn" class="bg-primary hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition-all-300">
+                                    验证暗号
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 成功页面 -->
+            <section id="successSection" class="hidden animate-fade-in">
+                <div class="max-w-3xl mx-auto dark-glass rounded-xl p-8 shadow-2xl">
+                    <div class="text-center mb-8">
+                        <div class="w-24 h-24 rounded-full bg-green-500 flex items-center justify-center mx-auto mb-4">
+                            <i class="fa fa-check text-4xl"></i>
+                        </div>
+                        <h2 class="text-3xl font-bold minecraft-font mb-4">恭喜您通过审核！</h2>
+                        <p class="text-xl text-gray-300">您已成功通过白名单审核，可以加入我们的服务器了！</p>
+                    </div>
+                    
+                    <div class="bg-gray-800 rounded-lg p-6 mb-8">
+                        <h3 class="text-xl font-semibold mb-4">服务器信息</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">服务器地址：</span>
+                                <span class="font-mono">mc.essentialsmp.com</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">服务器版本：</span>
+                                <span>1.20.1</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">白名单状态：</span>
+                                <span class="text-green-500">已通过</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">审核时间：</span>
+                                <span id="approvalTime"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-semibold mb-4">下一步</h3>
+                        <ul class="list-disc pl-6 space-y-2">
+                            <li>加入我们的 Discord 社区：<a href="#" class="text-primary hover:underline">discord.gg/essentialsmp</a></li>
+                            <li>关注我们的官方微博获取最新动态</li>
+                            <li>准备好您的游戏客户端，连接服务器开始游戏</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button id="startPlayingBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full transition-all-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                            开始游戏
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- 页脚 -->
+        <footer class="dark-glass py-6 px-4 mt-auto">
+            <div class="container mx-auto">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="mb-4 md:mb-0">
+                        <p class="text-gray-400">&copy; 2025 Minecraft 服务器. 保留所有权利.</p>
+                    </div>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-primary transition-all-300">
+                            <i class="fa fa-weibo"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-primary transition-all-300">
+                            <i class="fa fa-qq"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-primary transition-all-300">
+                            <i class="fa fa-discord"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-primary transition-all-300">
+                            <i class="fa fa-youtube-play"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 帮助模态框 -->
+    <div id="helpModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-900 rounded-xl p-6 max-w-lg w-full mx-4 animate-fade-in">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold">帮助中心</h3>
+                <button id="closeHelpModal" class="text-gray-400 hover:text-white">
+                    <i class="fa fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <h4 class="text-lg font-semibold text-primary">如何申请白名单？</h4>
+                    <p class="text-gray-300">您需要完成网站上的问卷调查，通过审核后即可获得白名单资格。</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold text-primary">审核需要多长时间？</h4>
+                    <p class="text-gray-300">通常情况下，审核会在24小时内完成。如果您的申请被优先处理，可能会更快。</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold text-primary">如何提高审核通过率？</h4>
+                    <p class="text-gray-300">请认真填写问卷，真实回答问题，展示您的游戏技能和团队合作精神。</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold text-primary">忘记密码怎么办？</h4>
+                    <p class="text-gray-300">请联系服务器管理员重置密码。</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold text-primary">服务器配置要求？</h4>
+                    <p class="text-gray-300">建议使用最新版本的Minecraft Java版客户端，确保网络连接稳定。</p>
+                </div>
+            </div>
+            <div class="mt-6 text-center">
+                <button id="contactSupportBtn" class="bg-primary hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition-all-300">
+                    联系客服
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 问卷数据
+        const questions = [
+            {
+                id: 1,
+                type: "single",
+                category: "personality",
+                question: "在游戏中，你发现一个玩家正在破坏公共设施，你会怎么做？",
+                options: [
+                    { id: 1, text: "立即制止并报告管理员", score: 10 },
+                    { id: 2, text: "尝试与该玩家沟通，了解情况", score: 8 },
+                    { id: 3, text: "忽略，这不关我的事", score: 0 },
+                    { id: 4, text: "加入破坏行列", score: -10 }
+                ]
+            },
+            {
+                id: 2,
+                type: "single",
+                category: "behavior",
+                question: "当你在游戏中获得了稀有物品，你会怎么做？",
+                options: [
+                    { id: 1, text: "与朋友分享或交易", score: 10 },
+                    { id: 2, text: "展示给大家看", score: 6 },
+                    { id: 3, text: "独自收藏，不告诉任何人", score: 4 },
+                    { id: 4, text: "炫耀并嘲笑没有的玩家", score: 0 }
+                ]
+            },
+            {
+                id: 3,
+                type: "single",
+                category: "values",
+                question: "在团队合作项目中，你更倾向于扮演什么角色？",
+                options: [
+                    { id: 1, text: "领导者，负责规划和协调", score: 8 },
+                    { id: 2, text: "执行者，认真完成分配的任务", score: 10 },
+                    { id: 3, text: "创意者，提供想法和建议", score: 8 },
+                    { id: 4, text: "跟随者，听从指示但不主动参与", score: 4 }
+                ]
+            },
+            {
+                id: 4,
+                type: "single",
+                category: "knowledge",
+                question: "你对Minecraft的红石系统了解程度如何？",
+                options: [
+                    { id: 1, text: "精通，可以构建复杂的红石装置", score: 10 },
+                    { id: 2, text: "了解基本原理，能制作简单装置", score: 7 },
+                    { id: 3, text: "略知一二，仅限于使用现成的设计", score: 4 },
+                    { id: 4, text: "完全不懂红石系统", score: 2 }
+                ]
+            },
+            {
+                id: 5,
+                type: "single",
+                category: "personality",
+                question: "如果其他玩家向你寻求帮助，你会怎么做？",
+                options: [
+                    { id: 1, text: "尽我所能提供帮助", score: 10 },
+                    { id: 2, text: "如果不忙的话会帮助", score: 7 },
+                    { id: 3, text: "找借口推脱", score: 2 },
+                    { id: 4, text: "直接忽略请求", score: 0 }
+                ]
+            },
+            {
+                id: 6,
+                type: "single",
+                category: "behavior",
+                question: "在PvP战斗中，你更注重什么？",
+                options: [
+                    { id: 1, text: "公平竞争，尊重对手", score: 10 },
+                    { id: 2, text: "策略和技巧的运用", score: 8 },
+                    { id: 3, text: "胜利的结果", score: 5 },
+                    { id: 4, text: "使用任何手段取得胜利", score: 0 }
+                ]
+            },
+            {
+                id: 7,
+                type: "single",
+                category: "values",
+                question: "你认为在服务器中最重要的是什么？",
+                options: [
+                    { id: 1, text: "友好的社区氛围", score: 10 },
+                    { id: 2, text: "丰富的游戏内容", score: 7 },
+                    { id: 3, text: "强大的游戏技能", score: 5 },
+                    { id: 4, text: "拥有稀有物品", score: 3 }
+                ]
+            },
+            {
+                id: 8,
+                type: "single",
+                category: "knowledge",
+                question: "你对Minecraft的各种生物和它们的行为了解多少？",
+                options: [
+                    { id: 1, text: "非常了解，包括生成条件和掉落物", score: 10 },
+                    { id: 2, text: "了解常见生物的基本特性", score: 7 },
+                    { id: 3, text: "只认识基本的生物", score: 4 },
+                    { id: 4, text: "不太了解游戏中的生物", score: 2 }
+                ]
+            },
+            {
+                id: 9,
+                type: "single",
+                category: "personality",
+                question: "当你在游戏中犯错时，你会怎么做？",
+                options: [
+                    { id: 1, text: "承认错误并尝试弥补", score: 10 },
+                    { id: 2, text: "道歉但不采取进一步行动", score: 7 },
+                    { id: 3, text: "找借口为自己辩解", score: 3 },
+                    { id: 4, text: "否认错误或怪罪他人", score: 0 }
+                ]
+            },
+            {
+                id: 10,
+                type: "single",
+                category: "behavior",
+                question: "在建造建筑时，你更注重什么？",
+                options: [
+                    { id: 1, text: "创意和美观", score: 9 },
+                    { id: 2, text: "实用性和功能性", score: 8 },
+                    { id: 3, text: "速度和效率", score: 5 },
+                    { id: 4, text: "复制他人的设计", score: 3 }
+                ]
+            },
+            {
+                id: 11,
+                type: "single",
+                category: "values",
+                question: "你如何看待游戏中的资源获取？",
+                options: [
+                    { id: 1, text: "通过努力工作和探索获取", score: 10 },
+                    { id: 2, text: "与其他玩家交易获取", score: 8 },
+                    { id: 3, text: "寻找捷径或高效方法", score: 6 },
+                    { id: 4, text: "希望不劳而获", score: 0 }
+                ]
+            },
+            {
+                id: 12,
+                type: "single",
+                category: "knowledge",
+                question: "你对Minecraft的世界生成机制了解多少？",
+                options: [
+                    { id: 1, text: "非常了解，包括生物群系和结构生成", score: 10 },
+                    { id: 2, text: "了解基本的世界生成原理", score: 7 },
+                    { id: 3, text: "只知道表面现象", score: 4 },
+                    { id: 4, text: "不太关注世界生成机制", score: 2 }
+                ]
+            },
+            {
+                id: 13,
+                type: "single",
+                category: "personality",
+                question: "当其他玩家取得成就时，你会怎么做？",
+                options: [
+                    { id: 1, text: "祝贺并表示赞赏", score: 10 },
+                    { id: 2, text: "给予肯定但不特别关注", score: 7 },
+                    { id: 3, text: "漠不关心", score: 3 },
+                    { id: 4, text: "嫉妒或贬低他们的成就", score: 0 }
+                ]
+            },
+            {
+                id: 14,
+                type: "single",
+                category: "behavior",
+                question: "在多人游戏中，你如何处理冲突？",
+                options: [
+                    { id: 1, text: "尝试和平协商解决", score: 10 },
+                    { id: 2, text: "寻求管理员帮助", score: 8 },
+                    { id: 3, text: "避免冲突，远离问题", score: 5 },
+                    { id: 4, text: "通过对抗解决问题", score: 0 }
+                ]
+            },
+            {
+                id: 15,
+                type: "single",
+                category: "values",
+                question: "你认为游戏中的规则应该如何执行？",
+                options: [
+                    { id: 1, text: "公平公正，对所有人一视同仁", score: 10 },
+                    { id: 2, text: "根据具体情况灵活处理", score: 8 },
+                    { id: 3, text: "对朋友宽松一些", score: 3 },
+                    { id: 4, text: "规则不重要，可以随意违反", score: 0 }
+                ]
+            }
+        ];
+
+        // 暗号答案
+        const riddleAnswers = {
+            1: "生活中充满了喜剧",
+            2: "即使如此也会有悲剧",
+            3: "命运由你决定"
+        };
+
+        // DOM元素
+        const welcomeSection = document.getElementById('welcomeSection');
+        const infoSection = document.getElementById('infoSection');
+        const questionnaireSection = document.getElementById('questionnaireSection');
+        const resultSection = document.getElementById('resultSection');
+        const rulesSection = document.getElementById('rulesSection');
+        const successSection = document.getElementById('successSection');
+
+        const startBtn = document.getElementById('startBtn');
+        const backToWelcomeBtn = document.getElementById('backToWelcomeBtn');
+        const nextToQuestionsBtn = document.getElementById('nextToQuestionsBtn');
+        const backToResultBtn = document.getElementById('backToResultBtn');
+        const verifyRiddleBtn = document.getElementById('verifyRiddleBtn');
+        const startPlayingBtn = document.getElementById('startPlayingBtn');
+
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        const helpBtn = document.getElementById('helpBtn');
+        const helpModal = document.getElementById('helpModal');
+        const closeHelpModal = document.getElementById('closeHelpModal');
+
+        const introCount = document.getElementById('introCount');
+        const introduction = document.getElementById('introduction');
+
+        const questionContainer = document.getElementById('questionContainer');
+        const currentQuestionSpan = document.getElementById('currentQuestion');
+        const totalQuestionsSpan = document.getElementById('totalQuestions');
+        const progressBar = document.getElementById('progressBar');
+        const prevQuestionBtn = document.getElementById('prevQuestionBtn');
+        const nextQuestionBtn = document.getElementById('nextQuestionBtn');
+        const submitQuestionnaireBtn = document.getElementById('submitQuestionnaireBtn');
+
+        const resultContent = document.getElementById('resultContent');
+        const resultActions = document.getElementById('resultActions');
+
+        const riddleForm = document.getElementById('riddleForm');
+        const riddleElements = document.querySelectorAll('.riddle');
+
+        // 用户数据
+        let userData = {
+            username: '',
+            age: 0,
+            education: '',
+            experience: '',
+            introduction: '',
+            answers: [],
+            score: 0
+        };
+
+        let currentQuestionIndex = 0;
+
+        // 初始化
+        function init() {
+            // 设置问题总数
+            totalQuestionsSpan.textContent = questions.length;
+            
+            // 事件监听
+            setupEventListeners();
+            
+            // 初始化问卷
+            loadQuestion(currentQuestionIndex);
+        }
+
+        // 设置事件监听
+        function setupEventListeners() {
+            // 导航按钮
+            startBtn.addEventListener('click', () => {
+                welcomeSection.classList.add('hidden');
+                infoSection.classList.remove('hidden');
+            });
+
+            backToWelcomeBtn.addEventListener('click', () => {
+                infoSection.classList.add('hidden');
+                welcomeSection.classList.remove('hidden');
+            });
+
+            nextToQuestionsBtn.addEventListener('click', validateInfoForm);
+
+            backToResultBtn.addEventListener('click', () => {
+                rulesSection.classList.add('hidden');
+                resultSection.classList.remove('hidden');
+            });
+
+            verifyRiddleBtn.addEventListener('click', validateRiddleForm);
+
+            startPlayingBtn.addEventListener('click', () => {
+                alert('感谢您的加入！祝您游戏愉快！');
+            });
+
+            // 移动端菜单
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            // 帮助模态框
+            helpBtn.addEventListener('click', () => {
+                helpModal.classList.remove('hidden');
+            });
+
+            closeHelpModal.addEventListener('click', () => {
+                helpModal.classList.add('hidden');
+            });
+
+            // 点击模态框外部关闭
+            helpModal.addEventListener('click', (e) => {
+                if (e.target === helpModal) {
+                    helpModal.classList.add('hidden');
+                }
+            });
+
+            // 自我介绍字数统计
+            introduction.addEventListener('input', () => {
+                introCount.textContent = introduction.value.length;
+            });
+
+            // 问卷导航
+            prevQuestionBtn.addEventListener('click', () => {
+                if (currentQuestionIndex > 0) {
+                    currentQuestionIndex--;
+                    loadQuestion(currentQuestionIndex);
+                }
+            });
+
+            nextQuestionBtn.addEventListener('click', () => {
+                if (currentQuestionIndex < questions.length - 1) {
+                    // 检查是否已选择答案
+                    const selectedOption = document.querySelector(`input[name="question-${questions[currentQuestionIndex].id}"]:checked`);
+                    if (!selectedOption) {
+                        alert('请选择一个答案！');
+                        return;
+                    }
+
+                    // 保存答案
+                    saveAnswer();
+                    
+                    currentQuestionIndex++;
+                    loadQuestion(currentQuestionIndex);
+                }
+            });
+
+            submitQuestionnaireBtn.addEventListener('click', () => {
+                // 检查是否已选择答案
+                const selectedOption = document.querySelector(`input[name="question-${questions[currentQuestionIndex].id}"]:checked`);
+                if (!selectedOption) {
+                    alert('请选择一个答案！');
+                    return;
+                }
+
+                // 保存答案
+                saveAnswer();
+                
+                // 计算分数
+                calculateScore();
+                
+                // 显示结果
+                showResult();
+            });
+
+            // 暗号点击事件
+            riddleElements.forEach(element => {
+                element.addEventListener('click', () => {
+                    const riddleId = element.getAttribute('data-riddle');
+                    const messageElement = document.getElementById(`riddle${riddleId}`);
+                    messageElement.classList.toggle('show');
+                });
+            });
+
+            // 表单提交
+            document.getElementById('infoForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                validateInfoForm();
+            });
+
+            riddleForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                validateRiddleForm();
+            });
+        }
+
+        // 验证基本信息表单
+        function validateInfoForm() {
+            const username = document.getElementById('username').value.trim();
+            const age = parseInt(document.getElementById('age').value);
+            const education = document.getElementById('education').value;
+            const experience = document.getElementById('experience').value;
+            const introduction = document.getElementById('introduction').value.trim();
+
+            // 验证必填字段
+            if (!username || !age || !education || !experience || !introduction) {
+                alert('请填写所有必填字段！');
+                return;
+            }
+
+            // 验证年龄和学历
+            if (age < 12 || education === 'primary') {
+                alert('很抱歉，根据服务器规定，年龄小于12岁或学历在初一以下的玩家无法通过审核。');
+                return;
+            }
+
+            // 保存用户数据
+            userData.username = username;
+            userData.age = age;
+            userData.education = education;
+            userData.experience = experience;
+            userData.introduction = introduction;
+
+            // 切换到问卷页面
+            infoSection.classList.add('hidden');
+            questionnaireSection.classList.remove('hidden');
+        }
+
+        // 加载问题
+        function loadQuestion(index) {
+            const question = questions[index];
+            
+            // 更新当前问题索引
+            currentQuestionSpan.textContent = index + 1;
+            
+            // 更新进度条
+            const progress = ((index + 1) / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+            
+            // 生成问题HTML
+            let questionHTML = `
+                <div class="question-card bg-gray-800 rounded-xl p-6 shadow-lg animate-slide-in">
+                    <h3 class="text-xl font-semibold mb-4">${question.question}</h3>
+                    <div class="space-y-3">
+            `;
+            
+            // 添加选项
+            question.options.forEach(option => {
+                const isSelected = userData.answers.some(answer => 
+                    answer.questionId === question.id && answer.optionId === option.id
+                );
+                
+                questionHTML += `
+                    <label class="option-btn flex items-center p-3 border rounded-lg cursor-pointer ${isSelected ? 'selected' : ''}">
+                        <input type="radio" name="question-${question.id}" value="${option.id}" class="mr-3" ${isSelected ? 'checked' : ''}>
+                        <span>${option.text}</span>
+                    </label>
+                `;
+            });
+            
+            questionHTML += `
+                    </div>
+                </div>
+            `;
+            
+            // 更新问题容器
+            questionContainer.innerHTML = questionHTML;
+            
+            // 添加选项点击事件
+            const options = questionContainer.querySelectorAll('.option-btn');
+            options.forEach(option => {
+                option.addEventListener('click', () => {
+                    // 移除其他选项的选中状态
+                    options.forEach(opt => opt.classList.remove('selected'));
+                    
+                    // 添加当前选项的选中状态
+                    option.classList.add('selected');
+                    
+                    // 选中对应的单选按钮
+                    const radio = option.querySelector('input[type="radio"]');
+                    radio.checked = true;
+                });
+            });
+            
+            // 更新导航按钮状态
+            if (index === 0) {
+                prevQuestionBtn.classList.add('hidden');
+            } else {
+                prevQuestionBtn.classList.remove('hidden');
+            }
+            
+            if (index === questions.length - 1) {
+                nextQuestionBtn.classList.add('hidden');
+                submitQuestionnaireBtn.classList.remove('hidden');
+            } else {
+                nextQuestionBtn.classList.remove('hidden');
+                submitQuestionnaireBtn.classList.add('hidden');
+            }
+        }
+
+        // 保存答案
+        function saveAnswer() {
+            const question = questions[currentQuestionIndex];
+            const selectedOption = document.querySelector(`input[name="question-${question.id}"]:checked`);
+            
+            if (selectedOption) {
+                const optionId = parseInt(selectedOption.value);
+                const option = question.options.find(opt => opt.id === optionId);
+                
+                // 检查是否已有该问题的答案
+                const existingAnswerIndex = userData.answers.findIndex(answer => answer.questionId === question.id);
+                
+                if (existingAnswerIndex !== -1) {
+                    // 更新现有答案
+                    userData.answers[existingAnswerIndex] = {
+                        questionId: question.id,
+                        optionId: optionId,
+                        score: option.score
+                    };
+                } else {
+                    // 添加新答案
+                    userData.answers.push({
+                        questionId: question.id,
+                        optionId: optionId,
+                        score: option.score
+                    });
+                }
+            }
+        }
+
+        // 计算分数
+        function calculateScore() {
+            userData.score = userData.answers.reduce((total, answer) => total + answer.score, 0);
+        }
+
+        // 显示结果
+        function showResult() {
+            questionnaireSection.classList.add('hidden');
+            resultSection.classList.remove('hidden');
+            
+            let resultHTML = '';
+            
+            if (userData.score < 60) {
+                // 未通过
+                resultHTML = `
+                    <div class="text-center">
+                        <div class="w-24 h-24 rounded-full bg-red-500 flex items-center justify-center mx-auto mb-4">
+                            <i class="fa fa-times text-4xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-red-500 mb-4">很抱歉，您未通过审核</h3>
+                        <p class="text-gray-300 mb-6">您的得分：<span class="text-xl font-bold">${userData.score}</span>/100</p>
+                        <p class="text-gray-300 mb-6">您可以在30天后再次申请审核。</p>
+                        <div class="bg-gray-800 rounded-lg p-6 mb-6">
+                            <h4 class="text-lg font-semibold mb-3">审核反馈</h4>
+                            <p class="text-gray-300">您的回答表明您可能不完全符合我们服务器的社区标准。建议您：</p>
+                            <ul class="list-disc pl-6 mt-3 space-y-1 text-gray-300">
+                                <li>了解并尊重服务器规则</li>
+                                <li>培养团队合作精神</li>
+                                <li>提高游戏技能和知识</li>
+                                <li>学习如何与其他玩家友好相处</li>
+                            </ul>
+                        </div>
+                    </div>
+                `;
+                
+                resultActions.innerHTML = `
+                    <button id="restartBtn" class="bg-primary hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition-all-300">
+                        重新开始
+                    </button>
+                `;
+                
+                // 添加重新开始按钮事件
+                document.getElementById('restartBtn').addEventListener('click', () => {
+                    // 重置用户数据
+                    userData = {
+                        username: '',
+                        age: 0,
+                        education: '',
+                        experience: '',
+                        introduction: '',
+                        answers: [],
+                        score: 0
+                    };
+                    
+                    // 重置问题索引
+                    currentQuestionIndex = 0;
+                    
+                    // 重置表单
+                    document.getElementById('infoForm').reset();
+                    introCount.textContent = '0';
+                    
+                    // 返回欢迎页面
+                    resultSection.classList.add('hidden');
+                    welcomeSection.classList.remove('hidden');
+                });
+            } else {
+                // 通过
+                resultHTML = `
+                    <div class="text-center">
+                        <div class="w-24 h-24 rounded-full bg-green-500 flex items-center justify-center mx-auto mb-4">
+                            <i class="fa fa-check text-4xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-green-500 mb-4">恭喜您通过初步审核！</h3>
+                        <p class="text-gray-300 mb-6">您的得分：<span class="text-xl font-bold">${userData.score}</span>/100</p>
+                        <div class="bg-gray-800 rounded-lg p-6 mb-6">
+                            <h4 class="text-lg font-semibold mb-3">审核评价</h4>
+                            <div class="space-y-3">
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <span>人品评分</span>
+                                        <span>${calculateCategoryScore('personality')}/40</span>
+                                    </div>
+                                    <div class="w-full bg-gray-700 rounded-full h-2">
+                                        <div class="bg-primary h-2 rounded-full" style="width: ${(calculateCategoryScore('personality')/40)*100}%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <span>行为能力</span>
+                                        <span>${calculateCategoryScore('behavior')}/30</span>
+                                    </div>
+                                    <div class="w-full bg-gray-700 rounded-full h-2">
+                                        <div class="bg-secondary h-2 rounded-full" style="width: ${(calculateCategoryScore('behavior')/30)*100}%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <span>价值观</span>
+                                        <span>${calculateCategoryScore('values')}/30</span>
+                                    </div>
+                                    <div class="w-full bg-gray-700 rounded-full h-2">
+                                        <div class="bg-accent h-2 rounded-full" style="width: ${(calculateCategoryScore('values')/30)*100}%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <span>学识水平</span>
+                                        <span>${calculateCategoryScore('knowledge')}/20</span>
+                                    </div>
+                                    <div class="w-full bg-gray-700 rounded-full h-2">
+                                        <div class="bg-warning h-2 rounded-full" style="width: ${(calculateCategoryScore('knowledge')/20)*100}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-blue-900 bg-opacity-30 border border-blue-700 rounded-lg p-4 mb-6">
+                            <p class="text-blue-300 flex items-start">
+                                <i class="fa fa-info-circle mt-1 mr-2"></i>
+                                <span>请截图保存此页面作为审核通过的凭证，然后继续阅读服务器规则。</span>
+                            </p>
+                        </div>
+                    </div>
+                `;
+                
+                resultActions.innerHTML = `
+                    <button id="continueToRulesBtn" class="bg-primary hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition-all-300">
+                        继续阅读规则
+                    </button>
+                `;
+                
+                // 添加继续按钮事件
+                document.getElementById('continueToRulesBtn').addEventListener('click', () => {
+                    resultSection.classList.add('hidden');
+                    rulesSection.classList.remove('hidden');
+                });
+            }
+            
+            resultContent.innerHTML = resultHTML;
+        }
+
+        // 计算分类分数
+        function calculateCategoryScore(category) {
+            const categoryQuestions = questions.filter(q => q.category === category);
+            let categoryScore = 0;
+            
+            categoryQuestions.forEach(question => {
+                const answer = userData.answers.find(a => a.questionId === question.id);
+                if (answer) {
+                    categoryScore += answer.score;
+                }
+            });
+            
+            return categoryScore;
+        }
+
+        // 验证暗号表单
+        function validateRiddleForm() {
+            const answer1 = document.getElementById('riddleAnswer1').value.trim();
+            const answer2 = document.getElementById('riddleAnswer2').value.trim();
+            const answer3 = document.getElementById('riddleAnswer3').value.trim();
+            
+            // 验证必填字段
+            if (!answer1 || !answer2 || !answer3) {
+                alert('请填写所有暗号！');
+                return;
+            }
+            
+            // 验证答案
+            if (answer1 === riddleAnswers[1] && answer2 === riddleAnswers[2] && answer3 === riddleAnswers[3]) {
+                // 答对了
+                rulesSection.classList.add('hidden');
+                successSection.classList.remove('hidden');
+                
+                // 设置审核时间
+                const now = new Date();
+                document.getElementById('approvalTime').textContent = now.toLocaleString('zh-CN');
+                
+                // 添加成功动画
+                document.querySelector('#successSection .rounded-full').classList.add('success-animation');
+            } else {
+                // 答错了
+                alert('暗号不正确，请重新阅读服务器规则并找出正确的暗号！');
+            }
+        }
+
+        // 启动应用
+        init();
+    </script>
+</body>
+</html>
